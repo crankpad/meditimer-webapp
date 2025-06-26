@@ -117,16 +117,17 @@
         const [h, m] = input.split(":");
         now.setHours(+h, +m, 0);
       }
-      const other = med === "Ibuprofen" ? "Paracetamol" : "Ibuprofen";
-      const medTime = new Date(now.getTime() + MEDS[med] * 3600000);
-      const otherTime = new Date(now.getTime() + MEDS[other] * 3600000);
-      const nextMed = medTime < otherTime ? other : med;
-      const nextTime = nextMed === med ? medTime : otherTime;
+const other = med === "Ibuprofen" ? "Paracetamol" : "Ibuprofen";
+const medTime = new Date(now.getTime() + MEDS[med] * 3600000);
+const otherTime = new Date(now.getTime() + 3 * 3600000); // Wechsel immer nach 3h
+const nextMed = other;
+const nextTime = otherTime;
 
-      latestMessage = `${med} wurde um ${format(now)} eingenommen.\n\n` +
-                      `Nächste Einnahme: ${nextMed} ab ${format(nextTime)}\n\n` +
-                      `Alle Einnahmezeiten:\n- ${med}: ab ${format(medTime)}\n- ${other}: ab ${format(otherTime)}`;
-      document.getElementById("output").textContent = latestMessage;
+latestMessage =
+  `${med} wurde um ${format(now)} eingenommen.\n\n` +
+  `Nächste Einnahme: ${nextMed} ab ${format(nextTime)}\n\n` +
+  `Alle Einnahmezeiten:\n- Paracetamol: ab ${format(new Date(now.getTime() + MEDS["Paracetamol"] * 3600000))}` +
+  `\n- Ibuprofen: ab ${format(new Date(now.getTime() + MEDS["Ibuprofen"] * 3600000))}`;      document.getElementById("output").textContent = latestMessage;
       document.getElementById("output").style.display = "block";
       saveLog(latestMessage);
     }
