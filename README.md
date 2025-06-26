@@ -1,4 +1,4 @@
-# Meditimer WebApp
+# Meditimer WebApp v0.170
 
 Ein einfacher, offlinefähiger Medikamenten-Timer zur Unterstützung bei Fieber, Schmerzen und regelmäßiger Einnahme von Paracetamol und Ibuprofen – mit lokaler Speicherung, Temperaturverlauf und klarer Wechselanzeige.
 
