@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Development Report – Meditimer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 1rem; line-height: 1.6; }
+    code { background: #f0f0f0; padding: 0.2em 0.4em; border-radius: 4px; }
+    h2 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>Meditimer – Development Report</h1>
+  <p><strong>Versionierung:</strong> <code>v0.1xx</code></p>
+
+  <h2>✅ v0.100 – Initialversion</h2>
+  <ul>
+    <li>Medikamentenbuttons (Ibuprofen, Paracetamol)</li>
+    <li>Manuelle Uhrzeiteingabe</li>
+    <li>Einfache Textausgabe ohne Speicher</li>
+  </ul>
+
+  <h2>✅ v0.110 – Lokale Speicherung & Darkmode</h2>
+  <ul>
+    <li><code>localStorage</code> für Fieberdaten</li>
+    <li>Darkmode-Toggle (fixiert, rund)</li>
+    <li>Responsives Design für Mobilgeräte</li>
+  </ul>
+
+  <h2>✅ v0.120 – Fieberfunktion</h2>
+  <ul>
+    <li>Temperaturerfassung mit Verlauf</li>
+    <li>Warnung bei ≥39,5 °C</li>
+    <li>Grafische Darstellung im Canvas</li>
+  </ul>
+
+  <h2>✅ v0.130 – Export/Import</h2>
+  <ul>
+    <li>JSON-basierte Speicherung</li>
+    <li>Datei-Export/-Import (inkl. Drag & Drop)</li>
+    <li>Kompaktes Format <code>[["timestamp", Temperatur], …]</code></li>
+  </ul>
+
+  <h2>✅ v0.140 – Einnahmelogik (zeitlich frühere Substanz)</h2>
+  <ul>
+    <li>Anzeige: „Nächste Einnahme = das Medikament mit kürzester Sperrzeit“</li>
+    <li>Nicht substanzabhängig, sondern nur nach Zeitvergleich</li>
+  </ul>
+
+  <h2>✅ v0.150 – Wechsellogik: Fokus auf anderes Medikament</h2>
+  <ul>
+    <li>Wenn z. B. Paracetamol genommen → zeige: „Ibuprofen ab +3 h“</li>
+    <li>Immer Fokus auf Substanzwechsel, nicht Wiederholung</li>
+    <li><strong>„Alle Einnahmezeiten“</strong> bleibt als transparente Übersicht erhalten</li>
+  </ul>
+</body>
+</html>
