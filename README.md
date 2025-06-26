@@ -1,1 +1,1 @@
-https://crankpad.github.io/meditimer-webapp/
+https://github.com/crankpad/meditimer-webapp/settings/pages
