@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Medikamenten-Timer</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4CAF50">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      max-width: 500px;
+      margin: auto;
+      background: #f9f9f9;
+    }
+    button, input[type="time"] {
+      width: 100%;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      font-size: 1rem;
+    }
+    #output {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: white;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
+    }
+    #hiddenTextArea {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Medikamenten-Timer</h2>
+
+<label for="time">Manuelle Zeit (optional):</label>
+<input type="time" id="time">
+
+<button onclick="handleMed('Ibuprofen')">Ibuprofen genommen</button>
+<button onclick="handleMed('Paracetamol')">Paracetamol genommen</button>
+
+<div id="output" style="display:none;"></div>
+<textarea id="hiddenTextArea"></textarea>
+<button onclick="copyToClipboard()">Text kopieren</button>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js').then(() => {
+      console.log("Service Worker registriert");
+    });
+  }
+
+  let latestMessage = "";
+
+  function handleMed(med) {
+    let now = new Date();
+    const input = document.getElementById("time").value;
+
+    if (input) {
+      const [h, m] = input.split(":");
+      now.setHours(parseInt(h));
+      now.setMinutes(parseInt(m));
+      now.setSeconds(0);
+    }
+
+    const format = d => d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const other = med === "Ibuprofen" ? "Paracetamol" : "Ibuprofen";
+
+    latestMessage =
+      `${med} wurde um ${format(now)} eingenommen.\n\n` +
+      `Nächste Einnahme:\n- ${med}: ab ${format(new Date(now.getTime() + 6 * 60 * 60 * 1000))}\n` +
+      `- ${other}: ab ${format(new Date(now.getTime() + 3 * 60 * 60 * 1000))}`;
+
+    document.getElementById("output").textContent = latestMessage;
+    document.getElementById("output").style.display = "block";
+  }
+
+  function copyToClipboard() {
+    const textarea = document.getElementById("hiddenTextArea");
+    textarea.value = latestMessage;
+    textarea.select();
+    textarea.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    alert("Text kopiert!");
+  }
+</script>
+
+</body>
+</html>
