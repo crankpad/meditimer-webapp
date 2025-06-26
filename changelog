@@ -1,0 +1,30 @@
+<section style="font-family:sans-serif;max-width:600px;margin:auto;padding:1rem;line-height:1.6">
+  <h2>Meditimer – Development Report</h2>
+  <p><strong>Versionierung:</strong> <code>v0.1xx</code></p>
+
+  <ul>
+    <li><strong>v0.100 – Initialversion</strong><br>
+      Basis-App mit Medikamentenbuttons (Ibuprofen, Paracetamol), manuelle Uhrzeiteingabe, einfache Textausgabe.
+    </li>
+    <li><strong>v0.110 – Lokale Speicherung & Darkmode</strong><br>
+      <code>localStorage</code> für Fieberdaten, Darkmode-Toggle (fixiert), responsives Layout.
+    </li>
+    <li><strong>v0.120 – Fieberfunktion</strong><br>
+      Temperatur-Eingabe, Speicherung im Verlauf, Warnung bei ≥39,5 °C, Temperaturgraph per Canvas.
+    </li>
+    <li><strong>v0.130 – Export/Import</strong><br>
+      JSON-Export/Import von Fieberdaten, Drag & Drop Unterstützung, kompaktes Datenformat.
+    </li>
+    <li><strong>v0.140 – Einnahmelogik korrigiert</strong><br>
+      „Nächste Einnahme“ zeigt jetzt korrekt das <em>zeitlich frühere Medikament</em>, nicht das eingenommene.
+    </li>
+  </ul>
+
+  <p><strong>Nächste Schritte (optional):</strong></p>
+  <ul>
+    <li>📲 PWA-Unterstützung (z. B. für Homescreen-Start)</li>
+    <li>🌐 Synchronisierung im lokalen Netzwerk</li>
+    <li>🧪 Reset- und Testtools für Verlauf</li>
+    <li>🔒 Benutzerprofile oder PIN-Schutz</li>
+  </ul>
+</section>
