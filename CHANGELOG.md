@@ -30,3 +30,15 @@
 - Wenn z. B. Paracetamol genommen → zeige: „Ibuprofen ab +3 h“  
 - Immer Fokus auf Substanzwechsel, nicht Wiederholung  
 - **„Alle Einnahmezeiten“** bleibt als transparente Übersicht erhalten
+
+### ✅ v0.160 – Finalisierung & Interface-Tuning
+- Darkmode-Toggle nach oben rechts verschoben (mobile-friendly)
+- Footer mit MIT-Lizenz-Hinweis & rotem medizinischen Haftungsausschluss
+- Kompletter Code technisch und rechtlich geprüft
+
+### ✅ v0.170 – Zeitkonsistenz bei Folgeaktionen
+
+- Einheitlicher Zeitstempel für Fiebermessung und direkt folgende Medikamenteneinnahme
+- Einführung von `currentTimestamp`, um aufeinanderfolgende Eingaben zeitlich zu koppeln
+- Fehlerkorrektur: doppelte Date-Initialisierung in `logFever()` entfernt
+- Technischer und visueller Endabgleich durchgeführt
