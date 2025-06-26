@@ -105,13 +105,15 @@
     const MEDS = { Ibuprofen: 6, Paracetamol: 3 };
     let feverData = JSON.parse(localStorage.getItem('feverData') || '[]');
     let latestMessage = "";
-
+	let currentTimestamp = null; // Zeitanker für direkt folgende Aktionen
+	
     function format(d) {
       return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
     }
 
     function handleMed(med) {
-      let now = new Date();
+      let now = currentTimestamp || new Date();
+		currentTimestamp = null; // direkt wieder freigeben
       const input = document.getElementById("time").value;
       if (input) {
         const [h, m] = input.split(":");
@@ -141,9 +143,10 @@ latestMessage =
     }
 
     function logFever() {
+	const now = new Date();
+		currentTimestamp = now; // merken für folgende Eingabe
       const val = parseFloat(document.getElementById("feverInput").value);
       if (!val || val < 34 || val > 44) return alert("Ungültige Temperatur");
-      const now = new Date();
       feverData.push([now.toISOString(), val]);
       localStorage.setItem("feverData", JSON.stringify(feverData));
       drawChart();
