@@ -93,6 +93,14 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       z-index: 1000;
     }
+    #dropZone {
+      border: 2px dashed #ccc;
+      padding: 1rem;
+      text-align: center;
+      border-radius: 8px;
+      margin-top: 1rem;
+      color: #888;
+    }
     @media (max-width: 600px) {
       body {
         padding: 1rem;
@@ -123,6 +131,11 @@
     <button onclick="logFever()">Fieber speichern</button>
     <canvas id="feverChart"></canvas>
     <div id="historyLog"></div>
+
+    <button onclick="exportData()">Fieberdaten exportieren</button>
+    <button onclick="document.getElementById('fileInput').click()">Fieberdaten importieren</button>
+    <input type="file" id="fileInput" accept=".txt" style="display:none" onchange="importData(event)">
+    <div id="dropZone" ondrop="dropImport(event)" ondragover="event.preventDefault()">oder Datei hierher ziehen zum Importieren</div>
   </div>
 
   <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
@@ -147,7 +160,6 @@
     function handleMed(med) {
       let now = new Date();
       const input = document.getElementById("time").value;
-
       if (input) {
         const [h, m] = input.split(":");
         now.setHours(parseInt(h));
@@ -156,10 +168,21 @@
       }
 
       const other = med === "Ibuprofen" ? "Paracetamol" : "Ibuprofen";
+      const medTime = new Date(now.getTime() + MEDS[med] * 3600000);
+      const otherTime = new Date(now.getTime() + MEDS[other] * 3600000);
+      const nextMed = medTime < otherTime ? med : other;
+      const nextTime = nextMed === med ? medTime : otherTime;
+
       latestMessage =
-        `${med} wurde um ${format(now)} eingenommen.\n\n` +
-        `Nächste Einnahme:\n- ${med}: ab ${format(new Date(now.getTime() + MEDS[med] * 3600000))}\n` +
-        `- ${other}: ab ${format(new Date(now.getTime() + MEDS[other] * 3600000))}`;
+        `${med} wurde um ${format(now)} eingenommen.
+
+` +
+        `Nächste Einnahme: ${nextMed} ab ${format(nextTime)}
+
+` +
+        `Alle Einnahmezeiten:
+- ${med}: ab ${format(medTime)}
+- ${other}: ab ${format(otherTime)}`;
 
       document.getElementById("output").textContent = latestMessage;
       document.getElementById("output").style.display = "block";
@@ -178,40 +201,33 @@
     function logFever() {
       const val = parseFloat(document.getElementById("feverInput").value);
       if (!val || val < 34 || val > 44) return alert("Ungültige Temperatur");
-
       const now = new Date();
-      feverData.push({ time: now.toISOString(), temp: val });
+      feverData.push([now.toISOString(), val]);
       localStorage.setItem("feverData", JSON.stringify(feverData));
       drawChart();
       saveLog(`Fieber gemessen: ${val}°C um ${format(now)}`);
-
-      if (val >= 39.5) {
-        alert("Fieber über 39,5°C – Medikamenteneinnahme empfohlen!");
-      }
+      if (val >= 39.5) alert("Fieber über 39,5°C – Medikamenteneinnahme empfohlen!");
     }
 
     function drawChart() {
       const canvas = document.getElementById("feverChart");
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
       if (feverData.length < 2) return;
-
       const width = canvas.width;
       const height = canvas.height;
-      const times = feverData.map(e => new Date(e.time).getTime());
-      const temps = feverData.map(e => e.temp);
+      const times = feverData.map(e => new Date(e[0]).getTime());
+      const temps = feverData.map(e => e[1]);
       const minTime = Math.min(...times);
       const maxTime = Math.max(...times);
       const minTemp = Math.min(...temps, 34);
       const maxTemp = Math.max(...temps, 41);
-
       ctx.beginPath();
       ctx.strokeStyle = "red";
       ctx.lineWidth = 2;
       feverData.forEach((entry, i) => {
-        const x = ((new Date(entry.time).getTime() - minTime) / (maxTime - minTime)) * width;
-        const y = height - ((entry.temp - minTemp) / (maxTemp - minTemp)) * height;
+        const x = ((new Date(entry[0]).getTime() - minTime) / (maxTime - minTime)) * width;
+        const y = height - ((entry[1] - minTemp) / (maxTemp - minTemp)) * height;
         i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
       });
       ctx.stroke();
@@ -227,6 +243,58 @@
     function toggleDarkMode() {
       const current = document.documentElement.getAttribute("data-theme");
       document.documentElement.setAttribute("data-theme", current === "dark" ? "light" : "dark");
+    }
+
+    function exportData() {
+      const data = JSON.stringify(feverData);
+      const blob = new Blob([data], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "feverdata.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (Array.isArray(data)) {
+            feverData = data;
+            localStorage.setItem("feverData", JSON.stringify(feverData));
+            drawChart();
+            alert("Import erfolgreich.");
+          }
+        } catch (e) {
+          alert("Fehler beim Importieren der Datei.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function dropImport(event) {
+      event.preventDefault();
+      const file = event.dataTransfer.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (Array.isArray(data)) {
+            feverData = data;
+            localStorage.setItem("feverData", JSON.stringify(feverData));
+            drawChart();
+            alert("Import erfolgreich (Drag & Drop).");
+          }
+        } catch (e) {
+          alert("Fehler beim Drag & Drop Import.");
+        }
+      };
+      reader.readAsText(file);
     }
 
     drawChart();
