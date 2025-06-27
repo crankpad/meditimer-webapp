@@ -109,6 +109,7 @@
   <script>
     const MEDS = { Ibuprofen: 6, Paracetamol: 3 };
     let feverData = JSON.parse(localStorage.getItem('feverData') || '[]');
+if (!Array.isArray(feverData)) feverData = [];
     let logEntries = JSON.parse(localStorage.getItem('logEntries') || '[]');
     let latestMessage = "";
     let currentTimestamp = null;
