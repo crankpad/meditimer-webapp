@@ -1,11 +1,12 @@
-# Meditimer – Development Report
+# Changelog – Meditimer v0.184e
 
-## 📌 Versionierung: `v0.1xx`
+🗓 Version: 0.184e
+📅 Datum: 2025-06-26
 
-### ✅ v0.182 – Darkmode-Optimierung & Bugfix
-
-- Fieber-Graph: automatische Farbwahl nach Theme
-  - Lightmode: rote Kurve, blaue Min/Max
-  - Darkmode: grüne Kurve, gelbe Min/Max, helle Linien
-- Doppelte „Fieber erfassen“-Sektion entfernt (Bugfix)
-- Layout: Fiebergraph bleibt unter Medikamenten
+## ✨ Änderungen
+- ✅ Fehlerbehebung: Fieberwerte mit Komma (z. B. `38,5`) werden nun korrekt erkannt und gespeichert
+- 🔧 Eingabewert wird automatisch `,` → `.` umgewandelt
+- 🧪 Vollständige Prüfung auf Syntaxfehler, JS-Ausführung, lokale Speicherung und UI-Funktion
+- 💾 Fieber- und Medikamentenverlauf funktionieren vollständig
+- 🌗 Darkmode mit kontrastreichem Verlauf getestet
+- 🧼 Alle bekannten Fehler aus v0.184a–d korrigiert
