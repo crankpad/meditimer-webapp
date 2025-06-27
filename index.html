@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -49,24 +50,33 @@
       color: white;
       cursor: pointer;
     }
-    #output, #historyLog {
+    #output {
       background: var(--card);
       border: 1px solid #ccc;
       padding: 1rem;
       border-radius: 8px;
       white-space: pre-wrap;
     }
+    #historyLog {
+      background: var(--card);
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+    }
     .dark-toggle {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  font-size: 1.2rem;
-  background: var(--accent);
-  color: white;
-  border: none;
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      background: var(--accent);
+      color: white;
+      border: none;
     }
     #dropZone {
       border: 2px dashed #ccc;
@@ -79,59 +89,91 @@
 </head>
 <body>
   <div class="container">
-    <h2>Medikamenten-Timer</h2>
+    <h2>Zeit erfassen</h2>
     <label>Zeit (optional):</label>
     <input type="time" id="time">
-    <button onclick="handleMed('Ibuprofen')">Ibuprofen</button>
-    <button onclick="handleMed('Paracetamol')">Paracetamol</button>
-    <div id="output" style="display:none;"></div>
-    <textarea id="hiddenTextArea" style="position:absolute;left:-9999px;"></textarea>
-    <button onclick="copyToClipboard()">Text kopieren</button>
 
-    <h3>Fieber erfassen</h3>
+    <h3 style="margin-top:1rem;">Fieber erfassen</h3>
     <input type="number" step="0.1" min="34" max="44" id="feverInput" placeholder="Temperatur in °C">
     <button onclick="logFever()">Fieber speichern</button>
     <canvas id="feverChart" width="500" height="200"></canvas>
-    <div id="historyLog"></div>
+
+    <div style="margin-bottom:1rem;"></div>
+
+    <button onclick="handleMed('Ibuprofen')">Ibuprofen</button>
+    <button onclick="handleMed('Paracetamol')" style="margin-bottom:1rem;">Paracetamol</button>
+
+    <div id="output" style="display:none;"></div>
+
+    <h3 style="margin-top:1rem;">Fieber erfassen</h3>
+    <input type="number" step="0.1" min="34" max="44" id="feverInput" placeholder="Temperatur in °C">
+    <button onclick="logFever()">Fieber speichern</button>
+    <canvas id="feverChart" width="500" height="200"></canvas>
+    <div style="margin-bottom:1rem;"></div>
+
+    <textarea id="hiddenTextArea" style="position:absolute;left:-9999px;"></textarea>
+    <button onclick="copyToClipboard()">Text kopieren</button>
 
     <button onclick="exportData()">Exportieren</button>
     <button onclick="document.getElementById('fileInput').click()">Importieren</button>
     <input type="file" id="fileInput" accept=".txt" style="display:none" onchange="importData(event)">
     <div id="dropZone" ondrop="dropImport(event)" ondragover="event.preventDefault()">oder Datei hierher ziehen</div>
+    <div id="historyLog"></div>
   </div>
+
   <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
 
   <script>
     const MEDS = { Ibuprofen: 6, Paracetamol: 3 };
     let feverData = JSON.parse(localStorage.getItem('feverData') || '[]');
     let latestMessage = "";
-	let currentTimestamp = null; // Zeitanker für direkt folgende Aktionen
-	
+    let currentTimestamp = null;
+
     function format(d) {
       return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
     }
 
+    function logFever() {
+      const now = new Date();
+      currentTimestamp = now;
+      const val = parseFloat(document.getElementById("feverInput").value);
+      if (!val || val < 34 || val > 44) return alert("Ungültige Temperatur");
+      feverData.push([now.toISOString(), val]);
+      localStorage.setItem("feverData", JSON.stringify(feverData));
+      drawChart();
+      saveLog(`[${now.getDate()}/${format(now)}] Fieber ${val.toFixed(1)}°`);
+      if (val >= 39.5) alert("Fieber über 39,5°C – Medikamenteneinnahme empfohlen!");
+    }
+
     function handleMed(med) {
       let now = currentTimestamp || new Date();
-		currentTimestamp = null; // direkt wieder freigeben
+      currentTimestamp = null;
       const input = document.getElementById("time").value;
       if (input) {
         const [h, m] = input.split(":");
         now.setHours(+h, +m, 0);
       }
-const other = med === "Ibuprofen" ? "Paracetamol" : "Ibuprofen";
-const medTime = new Date(now.getTime() + MEDS[med] * 3600000);
-const otherTime = new Date(now.getTime() + 3 * 3600000); // Wechsel immer nach 3h
-const nextMed = other;
-const nextTime = otherTime;
+      const other = med === "Ibuprofen" ? "Paracetamol" : "Ibuprofen";
+      const medTime = new Date(now.getTime() + MEDS[med] * 3600000);
+      const otherTime = new Date(now.getTime() + 3 * 3600000);
+      const nextMed = other;
+      const nextTime = otherTime;
 
-latestMessage =
-  `${med} wurde um ${format(now)} eingenommen.\n\n` +
-  `Nächste Einnahme: ${nextMed} ab ${format(nextTime)}\n\n` +
-  `Alle Einnahmezeiten:\n- Paracetamol: ab ${format(new Date(now.getTime() + MEDS["Paracetamol"] * 3600000))}` +
-  `\n- Ibuprofen: ab ${format(new Date(now.getTime() + MEDS["Ibuprofen"] * 3600000))}`;      document.getElementById("output").textContent = latestMessage;
+      latestMessage =
+        `${med} wurde um ${format(now)} eingenommen.
+
+` +
+        `Nächste Einnahme: ${nextMed} ab ${format(nextTime)}
+
+` +
+        `Alle Einnahmezeiten:
+- Paracetamol: ab ${format(new Date(now.getTime() + MEDS["Paracetamol"] * 3600000))}` +
+        `
+- Ibuprofen: ab ${format(new Date(now.getTime() + MEDS["Ibuprofen"] * 3600000))}`;
+
+      document.getElementById("output").textContent = latestMessage;
       document.getElementById("output").style.display = "block";
-      saveLog(latestMessage);
+      saveLog(`[${now.getDate()}/${format(now)}] ${med} genommen`);
     }
 
     function copyToClipboard() {
@@ -142,37 +184,35 @@ latestMessage =
       alert("Text kopiert!");
     }
 
-    function logFever() {
-	const now = new Date();
-		currentTimestamp = now; // merken für folgende Eingabe
-      const val = parseFloat(document.getElementById("feverInput").value);
-      if (!val || val < 34 || val > 44) return alert("Ungültige Temperatur");
-      feverData.push([now.toISOString(), val]);
-      localStorage.setItem("feverData", JSON.stringify(feverData));
-      drawChart();
-      saveLog(`Fieber gemessen: ${val}°C um ${format(now)}`);
-      if (val >= 39.5) alert("Fieber über 39,5°C – Medikamenteneinnahme empfohlen!");
-    }
-
     function drawChart() {
       const canvas = document.getElementById("feverChart");
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (feverData.length < 2) return;
+
       const times = feverData.map(e => new Date(e[0]).getTime());
       const temps = feverData.map(e => e[1]);
       const minTime = Math.min(...times);
       const maxTime = Math.max(...times);
-      const minTemp = 34;
-      const maxTemp = 42;
+      const minTemp = Math.min(...temps);
+      const maxTemp = Math.max(...temps);
+
       ctx.beginPath();
-      ctx.strokeStyle = "red";
       feverData.forEach((e, i) => {
         const x = ((new Date(e[0]).getTime() - minTime) / (maxTime - minTime)) * canvas.width;
-        const y = canvas.height - ((e[1] - minTemp) / (maxTemp - minTemp)) * canvas.height;
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        const y = canvas.height - ((e[1] - 34) / 8) * canvas.height;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       });
+      ctx.strokeStyle = '#4CAF50';
+      ctx.lineWidth = 2;
       ctx.stroke();
+
+      const minY = canvas.height - ((minTemp - 34) / 8) * canvas.height;
+      const maxY = canvas.height - ((maxTemp - 34) / 8) * canvas.height;
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+      ctx.beginPath(); ctx.moveTo(0, minY); ctx.lineTo(canvas.width, minY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, maxY); ctx.lineTo(canvas.width, maxY); ctx.stroke();
     }
 
     function saveLog(text) {
@@ -239,20 +279,5 @@ latestMessage =
 
     drawChart();
   </script>
-   <footer style="margin-top:2rem;font-size:0.9rem;text-align:center;color:#666">
-    <hr style="margin:2rem 0">
-    <p>
-      <strong>Lizenz:</strong> Diese App ist Open Source unter
-      <a href="https://opensource.org/licenses/MIT" target="_blank" style="color:var(--accent)">
-        MIT-Lizenz
-      </a> veröffentlicht.<br>
-      © crankpad – Nutzung auf eigene Verantwortung.
-    </p>
-    <p style="color:#b00020; font-weight:bold;">
-      Hinweis: Diese App ersetzt keine ärztliche Beratung.<br>
-      Für Dosierung, Wechselwirkungen und Einnahmeintervalle gelten die Angaben Ihres Arztes oder der Packungsbeilage.<br>
-      Bei Unsicherheit konsultieren Sie bitte medizinisches Fachpersonal.
-    </p>
-  </footer>
 </body>
 </html>
