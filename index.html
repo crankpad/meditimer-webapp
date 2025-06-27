@@ -121,6 +121,7 @@
     let feverData = JSON.parse(localStorage.getItem('feverData') || '[]');
     let latestMessage = "";
     let currentTimestamp = null;
+let logEntries = JSON.parse(localStorage.getItem('logEntries') || '[]');
 
     function format(d) {
       return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -129,11 +130,18 @@
     function logFever() {
       const now = new Date();
       currentTimestamp = now;
-      const val = parseFloat(document.getElementById("feverInput").value);
+      const val = Number(document.getElementById("feverInput").value.replace(",", "."));
       if (!val || val < 34 || val > 44) return alert("Ungültige Temperatur");
       feverData.push([now.toISOString(), val]);
       localStorage.setItem("feverData", JSON.stringify(feverData));
-      drawChart();
+      
+logEntries.forEach(text => {
+  const entry = document.createElement("div");
+  entry.textContent = text;
+  document.getElementById("historyLog").appendChild(entry);
+});
+
+drawChart();
       saveLog(`[${now.getDate()}/${format(now)}] Fieber ${val.toFixed(1)}°`);
       if (val >= 39.5) alert("Fieber über 39,5°C – Medikamenteneinnahme empfohlen!");
     }
@@ -234,9 +242,7 @@
     }
 
 drawChart();
-            alert("Import erfolgreich.");
-          }
-        } catch {
+          } catch {
           alert("Import fehlgeschlagen.");
         }
       };
