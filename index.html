@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -50,7 +49,7 @@
       color: white;
       cursor: pointer;
     }
-    #output {
+    #output, #historyLog {
       background: var(--card);
       border: 1px solid #ccc;
       padding: 1rem;
@@ -58,13 +57,8 @@
       white-space: pre-wrap;
     }
     #historyLog {
-      background: var(--card);
-      border: 1px solid #ccc;
-      padding: 1rem;
-      border-radius: 8px;
       font-family: monospace;
       font-size: 0.9rem;
-      white-space: pre-wrap;
     }
     .dark-toggle {
       position: fixed;
@@ -92,21 +86,17 @@
     <h2>Zeit erfassen</h2>
     <label>Zeit (optional):</label>
     <input type="time" id="time">
-
     <button onclick="handleMed('Ibuprofen')">Ibuprofen</button>
     <button onclick="handleMed('Paracetamol')" style="margin-bottom:1rem;">Paracetamol</button>
-
     <div id="output" style="display:none;"></div>
 
     <h3 style="margin-top:1rem;">Fieber erfassen</h3>
     <input type="number" step="0.1" min="34" max="44" id="feverInput" placeholder="Temperatur in °C">
     <button onclick="logFever()">Fieber speichern</button>
     <canvas id="feverChart" width="500" height="200"></canvas>
-    <div style="margin-bottom:1rem;"></div>
 
     <textarea id="hiddenTextArea" style="position:absolute;left:-9999px;"></textarea>
     <button onclick="copyToClipboard()">Text kopieren</button>
-
     <button onclick="exportData()">Exportieren</button>
     <button onclick="document.getElementById('fileInput').click()">Importieren</button>
     <input type="file" id="fileInput" accept=".txt" style="display:none" onchange="importData(event)">
@@ -117,11 +107,11 @@
   <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
 
   <script>
-const MEDS = { Ibuprofen: 6, Paracetamol: 3 };
+    const MEDS = { Ibuprofen: 6, Paracetamol: 3 };
     let feverData = JSON.parse(localStorage.getItem('feverData') || '[]');
+    let logEntries = JSON.parse(localStorage.getItem('logEntries') || '[]');
     let latestMessage = "";
     let currentTimestamp = null;
-let logEntries = JSON.parse(localStorage.getItem('logEntries') || '[]');
 
     function format(d) {
       return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -134,14 +124,7 @@ let logEntries = JSON.parse(localStorage.getItem('logEntries') || '[]');
       if (!val || val < 34 || val > 44) return alert("Ungültige Temperatur");
       feverData.push([now.toISOString(), val]);
       localStorage.setItem("feverData", JSON.stringify(feverData));
-      
-logEntries.forEach(text => {
-  const entry = document.createElement("div");
-  entry.textContent = text;
-  document.getElementById("historyLog").appendChild(entry);
-});
-
-drawChart();
+      drawChart();
       saveLog(`[${now.getDate()}/${format(now)}] Fieber ${val.toFixed(1)}°`);
       if (val >= 39.5) alert("Fieber über 39,5°C – Medikamenteneinnahme empfohlen!");
     }
@@ -155,34 +138,31 @@ drawChart();
         now.setHours(+h, +m, 0);
       }
       const other = med === "Ibuprofen" ? "Paracetamol" : "Ibuprofen";
-      const medTime = new Date(now.getTime() + MEDS[med] * 3600000);
-      const otherTime = new Date(now.getTime() + 3 * 3600000);
-      const nextMed = other;
-      const nextTime = otherTime;
+      const nextTime = new Date(now.getTime() + 3 * 3600000);
 
       latestMessage =
         `${med} wurde um ${format(now)} eingenommen.
 
 ` +
-        `Nächste Einnahme: ${nextMed} ab ${format(nextTime)}
+        `Nächste Einnahme: ${other} ab ${format(nextTime)}
 
 ` +
         `Alle Einnahmezeiten:
 - Paracetamol: ab ${format(new Date(now.getTime() + MEDS["Paracetamol"] * 3600000))}` +
         `
 - Ibuprofen: ab ${format(new Date(now.getTime() + MEDS["Ibuprofen"] * 3600000))}`;
-
       document.getElementById("output").textContent = latestMessage;
       document.getElementById("output").style.display = "block";
       saveLog(`[${now.getDate()}/${format(now)}] ${med} genommen`);
     }
 
-    function copyToClipboard() {
-      const textarea = document.getElementById("hiddenTextArea");
-      textarea.value = latestMessage;
-      textarea.select();
-      document.execCommand("copy");
-      alert("Text kopiert!");
+    function saveLog(text) {
+      logEntries.push(text);
+      localStorage.setItem('logEntries', JSON.stringify(logEntries));
+      const div = document.getElementById("historyLog");
+      const entry = document.createElement("div");
+      entry.textContent = text;
+      div.prepend(entry);
     }
 
     function drawChart() {
@@ -207,7 +187,6 @@ drawChart();
       ctx.lineWidth = 2;
 
       if (feverData.length === 1) {
-        // nur ein Punkt – zeichne Punkt
         const x = canvas.width / 2;
         const y = canvas.height - ((temps[0] - 34) / 8) * canvas.height;
         ctx.beginPath();
@@ -217,7 +196,6 @@ drawChart();
         return;
       }
 
-      // Linienverlauf
       ctx.beginPath();
       feverData.forEach((e, i) => {
         const x = ((new Date(e[0]).getTime() - minTime) / (maxTime - minTime)) * canvas.width;
@@ -226,14 +204,12 @@ drawChart();
       });
       ctx.stroke();
 
-      // Hilfslinien Min/Max
       const minY = canvas.height - ((minTemp - 34) / 8) * canvas.height;
       const maxY = canvas.height - ((maxTemp - 34) / 8) * canvas.height;
       ctx.strokeStyle = gridColor;
       ctx.beginPath(); ctx.moveTo(0, minY); ctx.lineTo(canvas.width, minY); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, maxY); ctx.lineTo(canvas.width, maxY); ctx.stroke();
 
-      // Punkte markieren
       ctx.fillStyle = markerColor;
       const minX = ((new Date(feverData[temps.indexOf(minTemp)][0]).getTime() - minTime) / (maxTime - minTime)) * canvas.width;
       const maxX = ((new Date(feverData[temps.indexOf(maxTemp)][0]).getTime() - minTime) / (maxTime - minTime)) * canvas.width;
@@ -241,8 +217,43 @@ drawChart();
       ctx.beginPath(); ctx.arc(maxX, maxY, 4, 0, 2 * Math.PI); ctx.fill();
     }
 
-drawChart();
-          } catch {
+    function copyToClipboard() {
+      const textarea = document.getElementById("hiddenTextArea");
+      textarea.value = latestMessage;
+      textarea.select();
+      document.execCommand("copy");
+      alert("Text kopiert!");
+    }
+
+    function toggleDarkMode() {
+      const theme = document.documentElement.getAttribute("data-theme");
+      document.documentElement.setAttribute("data-theme", theme === "dark" ? "light" : "dark");
+    }
+
+    function exportData() {
+      const data = JSON.stringify(feverData);
+      const blob = new Blob([data], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "feverdata.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importData(e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = evt => {
+        try {
+          const data = JSON.parse(evt.target.result);
+          if (Array.isArray(data)) {
+            feverData = data;
+            localStorage.setItem("feverData", JSON.stringify(data));
+            drawChart();
+            alert("Import erfolgreich.");
+          }
+        } catch {
           alert("Import fehlgeschlagen.");
         }
       };
@@ -261,12 +272,20 @@ drawChart();
             localStorage.setItem("feverData", JSON.stringify(data));
             drawChart();
             alert("Import erfolgreich (Drag & Drop).");
+          }
         } catch {
           alert("Drag & Drop Import fehlgeschlagen.");
+        }
       };
       reader.readAsText(file);
+    }
 
     drawChart();
-</script>
+    logEntries.forEach(text => {
+      const entry = document.createElement("div");
+      entry.textContent = text;
+      document.getElementById("historyLog").appendChild(entry);
+    });
+  </script>
 </body>
 </html>
