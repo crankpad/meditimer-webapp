@@ -117,7 +117,7 @@
   <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
 
   <script>
-    const MEDS = { Ibuprofen: 6, Paracetamol: 3 };
+const MEDS = { Ibuprofen: 6, Paracetamol: 3 };
     let feverData = JSON.parse(localStorage.getItem('feverData') || '[]');
     let latestMessage = "";
     let currentTimestamp = null;
@@ -261,15 +261,12 @@ drawChart();
             localStorage.setItem("feverData", JSON.stringify(data));
             drawChart();
             alert("Import erfolgreich (Drag & Drop).");
-          }
         } catch {
           alert("Drag & Drop Import fehlgeschlagen.");
-        }
       };
       reader.readAsText(file);
-    }
 
     drawChart();
-  </script>
+</script>
 </body>
 </html>
